@@ -25,7 +25,7 @@ def plot_results_multiple(predicted_data, true_data, prediction_len):
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
     ax.plot(true_data, label='True Data')
-	# Pad the list of predictions to shift it in the graph to it's correct start
+    # Pad the list of predictions to shift it in the graph to it's correct start
     for i, data in enumerate(predicted_data):
         padding = [None for p in range(i * prediction_len)]
         plt.plot(padding + data, label='Prediction')
@@ -61,7 +61,8 @@ def main():
 	)
 	'''
     # out-of memory generative training
-    steps_per_epoch = math.ceil((data.len_train - configs['data']['sequence_length']) / configs['training']['batch_size'])
+    steps_per_epoch = math.ceil(
+        (data.len_train - configs['data']['sequence_length']) / configs['training']['batch_size'])
     model.train_generator(
         data_gen=data.generate_train_batch(
             seq_len=configs['data']['sequence_length'],
@@ -79,7 +80,8 @@ def main():
         normalise=configs['data']['normalise']
     )
 
-    predictions = model.predict_sequences_multiple(x_test, configs['data']['sequence_length'], configs['data']['sequence_length'])
+    predictions = model.predict_sequences_multiple(x_test, configs['data']['sequence_length'],
+                                                   configs['data']['sequence_length'])
     # predictions = model.predict_sequence_full(x_test, configs['data']['sequence_length'])
     # predictions = model.predict_point_by_point(x_test)
 
