@@ -1,15 +1,19 @@
-__author__ = "Jakob Aungiers"
-__copyright__ = "Jakob Aungiers 2018"
-__version__ = "2.0.0"
-__license__ = "MIT"
-
+__copyright__ = "Jakob Aungiers 2018 MIT"
 import os
 import json
 import time
 import math
 import matplotlib.pyplot as plt
-from core.data_processor import DataLoader
+from core.data_loader import DataLoader
 from core.model import Model
+import logging
+
+log_fmt = '%(asctime)s %(levelname)s %(message)s %(name)s.%(funcName)s:%(lineno)d'
+logging.basicConfig(
+    level=logging.DEBUG,
+    format=log_fmt,
+    filemode='a',)
+log = logging.getLogger()
 
 
 def plot_results(predicted_data, true_data):
@@ -38,54 +42,49 @@ def main():
     if not os.path.exists(configs['model']['save_dir']): os.makedirs(configs['model']['save_dir'])
 
     data = DataLoader(
-        os.path.join('data', configs['data']['filename']),
-        configs['data']['train_test_split'],
-        configs['data']['columns']
+        os.path.join('data', 'sp500.csv'),
+        0.85,
+        [
+            "Close",
+            "Volume"
+        ],
     )
 
     model = Model()
-    model.build_model(configs)
-    x, y = data.get_train_data(
-        seq_len=configs['data']['sequence_length'],
-        normalise=configs['data']['normalise']
-    )
+    SEQUENCE_LENGTH = 50
+    BATCH_SIZE = 32
+    NORMALISE = True
+    EPOCHS = 3
+    SAVE_DIR = 'saved_models'
 
-    '''
-	# in-memory training
-	model.train(
-		x,
-		y,
-		epochs = configs['training']['epochs'],
-		batch_size = configs['training']['batch_size'],
-		save_dir = configs['model']['save_dir']
-	)
-	'''
+    x, y = data.get_train_data(
+        seq_len=SEQUENCE_LENGTH,
+        normalise=NORMALISE
+    )
     # out-of memory generative training
-    steps_per_epoch = math.ceil(
-        (data.len_train - configs['data']['sequence_length']) / configs['training']['batch_size'])
-    model.train_generator(
-        data_gen=data.generate_train_batch(
-            seq_len=configs['data']['sequence_length'],
-            batch_size=configs['training']['batch_size'],
-            normalise=configs['data']['normalise']
+    steps_per_epoch = math.ceil((data.len_train - SEQUENCE_LENGTH) / BATCH_SIZE)
+    model.train_gen(
+        data_gen=data.gen_train_batch(
+            seq_len=SEQUENCE_LENGTH,
+            batch_size=BATCH_SIZE,
+            normalise=NORMALISE
         ),
-        epochs=configs['training']['epochs'],
-        batch_size=configs['training']['batch_size'],
+        epochs=EPOCHS,
+        batch_size=BATCH_SIZE,
         steps_per_epoch=steps_per_epoch,
-        save_dir=configs['model']['save_dir']
+        save_dir=SAVE_DIR,
     )
 
     x_test, y_test = data.get_test_data(
-        seq_len=configs['data']['sequence_length'],
-        normalise=configs['data']['normalise']
+        seq_len=SEQUENCE_LENGTH,
+        normalise=NORMALISE,
     )
 
-    predictions = model.predict_sequences_multiple(x_test, configs['data']['sequence_length'],
-                                                   configs['data']['sequence_length'])
+    predictions = model.predict_sequences_multiple(x_test, SEQUENCE_LENGTH, SEQUENCE_LENGTH)
     # predictions = model.predict_sequence_full(x_test, configs['data']['sequence_length'])
     # predictions = model.predict_point_by_point(x_test)
 
-    plot_results_multiple(predictions, y_test, configs['data']['sequence_length'])
+    plot_results_multiple(predictions, y_test, SEQUENCE_LENGTH)
     # plot_results(predictions, y_test)
 
 

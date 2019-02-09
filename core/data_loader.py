@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 
 class DataLoader():
-    """A class for loading and transforming data for the lstm model"""
 
     def __init__(self, filename, split, cols):
         dataframe = pd.read_csv(filename)
@@ -15,11 +14,11 @@ class DataLoader():
         self.len_train_windows = None
 
     def get_test_data(self, seq_len, normalise):
-        '''
+        """
         Create x, y test data windows
         Warning: batch method, not generative, make sure you have enough memory to
         load data, otherwise reduce size of the training split.
-        '''
+        """
         data_windows = []
         for i in range(self.len_test - seq_len):
             data_windows.append(self.data_test[i:i+seq_len])
@@ -32,11 +31,11 @@ class DataLoader():
         return x,y
 
     def get_train_data(self, seq_len, normalise):
-        '''
+        """
         Create x, y train data windows
         Warning: batch method, not generative, make sure you have enough memory to
         load data, otherwise use generate_training_window() method.
-        '''
+        """
         data_x = []
         data_y = []
         for i in range(self.len_train - seq_len):
@@ -45,8 +44,8 @@ class DataLoader():
             data_y.append(y)
         return np.array(data_x), np.array(data_y)
 
-    def generate_train_batch(self, seq_len, batch_size, normalise):
-        '''Yield a generator of training data from filename on given list of cols split for train/test'''
+    def gen_train_batch(self, seq_len, batch_size, normalise):
+        """Yield a generator of training data from filename on given list of cols split for train/test"""
         i = 0
         while i < (self.len_train - seq_len):
             x_batch = []
@@ -63,7 +62,7 @@ class DataLoader():
             yield np.array(x_batch), np.array(y_batch)
 
     def _next_window(self, i, seq_len, normalise):
-        '''Generates the next data window from the given index location i'''
+        """Generates the next data window from the given index location i"""
         window = self.data_train[i:i+seq_len]
         window = self.normalise_windows(window, single_window=True)[0] if normalise else window
         x = window[:-1]
@@ -71,7 +70,7 @@ class DataLoader():
         return x, y
 
     def normalise_windows(self, window_data, single_window=False):
-        '''Normalise window with a base value of zero'''
+        """Normalise window with a base value of zero"""
         normalised_data = []
         window_data = [window_data] if single_window else window_data
         for window in window_data:
