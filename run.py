@@ -1,9 +1,9 @@
-__copyright__ = "Jakob Aungiers 2018 MIT"
+from core.utils import plot_results_multiple
+
+
 import os
 import json
-import time
 import math
-import matplotlib.pyplot as plt
 from core.data_loader import DataLoader
 from core.model import Model
 import logging
@@ -14,27 +14,6 @@ logging.basicConfig(
     format=log_fmt,
     filemode='a',)
 log = logging.getLogger()
-
-
-def plot_results(predicted_data, true_data):
-    fig = plt.figure(facecolor='white')
-    ax = fig.add_subplot(111)
-    ax.plot(true_data, label='True Data')
-    plt.plot(predicted_data, label='Prediction')
-    plt.legend()
-    plt.show()
-
-
-def plot_results_multiple(predicted_data, true_data, prediction_len):
-    fig = plt.figure(facecolor='white')
-    ax = fig.add_subplot(111)
-    ax.plot(true_data, label='True Data')
-    # Pad the list of predictions to shift it in the graph to it's correct start
-    for i, data in enumerate(predicted_data):
-        padding = [None for p in range(i * prediction_len)]
-        plt.plot(padding + data, label='Prediction')
-        plt.legend()
-    plt.show()
 
 
 def main():
@@ -54,7 +33,7 @@ def main():
     SEQUENCE_LENGTH = 50
     BATCH_SIZE = 32
     NORMALISE = True
-    EPOCHS = 3
+    EPOCHS = 2
     SAVE_DIR = 'saved_models'
 
     x, y = data.get_train_data(
@@ -75,16 +54,16 @@ def main():
         save_dir=SAVE_DIR,
     )
 
-    x_test, y_test = data.get_test_data(
+    x_test_df, y_test_df = data.get_test_data(
         seq_len=SEQUENCE_LENGTH,
         normalise=NORMALISE,
     )
 
-    predictions = model.predict_sequences_multiple(x_test, SEQUENCE_LENGTH, SEQUENCE_LENGTH)
+    predictions = model.predict_sequences_multiple(x_test_df, SEQUENCE_LENGTH, SEQUENCE_LENGTH)
     # predictions = model.predict_sequence_full(x_test, configs['data']['sequence_length'])
     # predictions = model.predict_point_by_point(x_test)
 
-    plot_results_multiple(predictions, y_test, SEQUENCE_LENGTH)
+    plot_results_multiple(predictions, y_test_df, SEQUENCE_LENGTH)
     # plot_results(predictions, y_test)
 
 
